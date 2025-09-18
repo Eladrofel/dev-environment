@@ -1,0 +1,31 @@
+services:
+  # MCP Gateway - dynamic mode using Docker MCP catalog
+  mcp-gateway:
+    image: docker/mcp-gateway
+    container_name: mcp-gateway
+    ports:
+      - "8811:8811"
+    command:
+      - --transport=streaming
+      - --port=8811
+      - --servers=exa,fetch,playwright,ref,semgrep
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /Users/dale/.docker/mcp:/root/.docker/mcp:rw
+    environment:
+      - EXA_API_KEY=${EXA_API_KEY}
+      - REF_API_KEY=${REF_API_KEY}
+      - DISPLAY=${DISPLAY}
+      - PIECES_API_BASE_URL=${PIECES_API_BASE_URL}
+    restart: unless-stopped
+    networks:
+      - mcp-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8811/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  mcp-network:
+    driver: bridge

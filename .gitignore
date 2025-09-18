@@ -1,0 +1,56 @@
+# Environment and secrets
+.env
+.env.local
+.env.*.local
+**/.env
+**/.env.local
+**/.env.*.local
+
+# IDE and editor files
+.idea/
+.vscode/
+**/.idea/
+**/.vscode/
+
+# OS generated files
+.DS_Store
+**/.DS_Store
+Thumbs.db
+**Thumbs.db
+
+# Docker volumes and data
+data/
+logs/
+**/data/
+**/logs/
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+**/*.tmp
+**/*.temp
+**/*.log
+
+# Local development
+/.direnv/
+/.envrc
+.gitignore.local
+**/.direnv/
+**/.envrc
+**/.gitignore.local
+
+# Node modules (if any components use Node.js)
+node_modules/
+**/node_modules/
+
+# Python (if any components use Python)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
