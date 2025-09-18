@@ -8,7 +8,7 @@ services:
     command:
       - --transport=streaming
       - --port=8811
-      - --servers=exa,fetch,playwright,ref,semgrep
+      - --servers=exa,fetch,playwright,semgrep
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /Users/dale/.docker/mcp:/root/.docker/mcp:rw
@@ -22,6 +22,26 @@ services:
       - mcp-network
     healthcheck:
       test: ["CMD-SHELL", "pgrep -f '/docker-mcp gateway run' || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # Ref MCP server - runs separately as HTTP server
+  # Note: Ref server runs in HTTP mode to avoid container proliferation issues
+  # when managed by the gateway. Connect to it directly via http://localhost:8080/mcp
+  ref-server:
+    image: mcp/ref-tools-mcp@sha256:0f53745eeca334de60b309745aba581caf7630d53310cb8d4394b00643c5bbaf
+    container_name: mcp-ref-server
+    ports:
+      - "8080:8080"
+    environment:
+      - REF_API_KEY=${REF_API_KEY}
+      - TRANSPORT=http  # HTTP mode for standalone operation
+    networks:
+      - mcp-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/mcp || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3

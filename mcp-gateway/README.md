@@ -9,11 +9,11 @@ The MCP Gateway provides unified access to multiple MCP servers through a single
 ## Features
 
 This setup includes the following MCP servers:
-- **exa** - AI-powered web search
-- **fetch** - Web content fetching and downloading
-- **playwright** - Web automation and browser control
-- **ref** - Documentation and reference lookup
-- **semgrep** - Code security scanning
+- **exa** - AI-powered web search (via gateway)
+- **fetch** - Web content fetching and downloading (via gateway)
+- **playwright** - Web automation and browser control (via gateway)
+- **semgrep** - Code security scanning (via gateway)
+- **ref** - Documentation and reference lookup (standalone HTTP server)
 
 ## Prerequisites
 
@@ -53,7 +53,41 @@ This setup includes the following MCP servers:
    docker-compose logs -f mcp-gateway
    ```
 
-The gateway will be available at `http://localhost:8811`
+The services will be available at:
+- **MCP Gateway**: `http://localhost:8811/mcp` (exa, fetch, playwright, semgrep)
+- **Ref MCP Server**: `http://localhost:8080/mcp` (ref tools)
+
+## Connecting MCP Clients
+
+To connect MCP clients (like Claude Desktop, Cursor, etc.) to the running services, use the following configuration:
+
+```json
+{
+  "mcpServers": {
+    "Docker MCP Gateway": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "http://localhost:8811/mcp"
+      ]
+    },
+    "Ref Documentation Server": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "http://localhost:8080/mcp"
+      ]
+    }
+  }
+}
+```
+
+**Notes**: 
+- Both configurations use `mcp-remote` to connect to HTTP MCP servers
+- The gateway provides exa, fetch, playwright, and semgrep tools
+- The ref server runs separately to avoid container management issues
 
 ## Environment Setup
 
@@ -118,11 +152,19 @@ The gateway automatically manages MCP server containers:
 
 ## Architecture
 
-This setup uses the **dynamic mode** of MCP Gateway:
-- Single gateway container manages all MCP servers
+### MCP Gateway (Dynamic Mode)
+The gateway manages most MCP servers in **dynamic mode**:
+- Single gateway container manages exa, fetch, playwright, and semgrep
 - Servers are spawned as needed using Docker-in-Docker
 - Automatic resource management and cleanup
 - Simplified configuration and maintenance
+
+### Ref Server (Standalone)
+The ref server runs **separately** for the following reasons:
+- **Container Lifecycle**: Ref server runs in HTTP mode and creates persistent containers that don't clean up properly when managed by the gateway
+- **Resource Management**: Running separately ensures proper container cleanup on compose down
+- **Stability**: Avoids orphaned ref containers accumulating over time
+- **Direct Access**: Provides direct HTTP access at `http://localhost:8080/mcp`
 
 ## Troubleshooting
 
@@ -155,6 +197,7 @@ If port 8811 is already in use:
      - "8812:8811"  # Use 8812 instead
    ```
 2. Restart: `docker-compose up -d`
+
 
 ## Development
 
